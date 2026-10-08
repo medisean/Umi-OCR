@@ -21,6 +21,28 @@ already cached. For a fully offline deployment, warm the model cache while
 online, then copy that cache with the environment. Runtime/model licensing and
 redistribution terms must be reviewed before bundling them into an installer.
 
+## Build a Docker image package
+
+From the repository root, run `sh dev-tools/paddleocr3_plugin/build-image.sh`.
+This builds the CPU image `umi-ocr-paddle:3.7.0` for `linux/amd64` and exports
+`umi-ocr-paddle_3.7.0.tar`. Load it on another Docker host with
+`docker load -i umi-ocr-paddle_3.7.0.tar`.
+
+The image runs the same JSON-lines worker protocol used by the plugin. For a
+standalone smoke run, keep stdin open and mount a persistent model cache:
+
+```sh
+docker run --rm -i -v umi-paddle-cache:/opt/paddlex \
+  umi-ocr-paddle:3.7.0 --ocr-version PP-OCRv6 --cpu-threads 4
+```
+
+The first run downloads model files into the cache volume. This image packages
+the OCR worker and CPU runtime; it does not contain the Umi-OCR desktop app or
+GPU runtime. GPU images need a PaddlePaddle wheel and base/runtime matching the
+target CUDA and driver versions. The plugin currently launches a local Python
+worker, so the Docker image is a portable engine package, not yet a drop-in
+Docker backend for Umi-OCR.
+
 ## Compatibility notes
 
 - The sidecar protocol is one JSON request and one JSON response per line, so

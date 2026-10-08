@@ -6,6 +6,7 @@ PyStand_for_UmiOCR/build
 .vscode
 .DS_Store
 ._*
+umi-ocr-paddle_*.tar
 *.exe
 *.txt
 
