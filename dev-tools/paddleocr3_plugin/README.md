@@ -40,8 +40,11 @@ The first run downloads model files into the cache volume. This image packages
 the OCR worker and CPU runtime; it does not contain the Umi-OCR desktop app or
 GPU runtime. GPU images need a PaddlePaddle wheel and base/runtime matching the
 target CUDA and driver versions. The plugin currently launches a local Python
-worker, so the Docker image is a portable engine package, not yet a drop-in
-Docker backend for Umi-OCR.
+worker by default. To use the image from Umi-OCR, select **Docker image** as
+the plugin Runtime, then set the Docker executable, image tag, and named model
+cache volume in the plugin's global settings. The image and named volume must
+already exist in the Docker daemon used by that CLI. The plugin sends image
+bytes over stdin, so image files do not need to be mounted into the container.
 
 ## Compatibility notes
 

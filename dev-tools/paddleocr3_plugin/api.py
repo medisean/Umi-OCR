@@ -10,6 +10,10 @@ import threading
 class Api:
     def __init__(self, global_argd):
         self.python_path = global_argd.get("python_path", "python") or "python"
+        self.runtime_mode = global_argd.get("runtime_mode", "python") or "python"
+        self.docker_path = global_argd.get("docker_path", "docker") or "docker"
+        self.docker_image = global_argd.get("docker_image", "umi-ocr-paddle:3.7.0") or "umi-ocr-paddle:3.7.0"
+        self.docker_volume = global_argd.get("docker_volume", "umi-ocr-paddle-cache") or "umi-ocr-paddle-cache"
         self.worker_path = os.path.join(os.path.dirname(__file__), "worker.py")
         self.process = None
         self.lock = threading.Lock()
@@ -23,19 +27,32 @@ class Api:
         cpu_threads = str(max(1, int(argd.get("cpu_threads", 4))))
         mkldnn = "1" if argd.get("enable_mkldnn", False) else "0"
         try:
+            worker_args = [
+                "--ocr-version",
+                version,
+                "--textline-orientation",
+                orientation,
+                "--cpu-threads",
+                cpu_threads,
+                "--mkldnn",
+                mkldnn,
+            ]
+            if self.runtime_mode == "docker":
+                command = [
+                    self.docker_path,
+                    "run",
+                    "--rm",
+                    "-i",
+                    "--volume",
+                    "{}:/opt/paddlex".format(self.docker_volume),
+                    self.docker_image,
+                ] + worker_args
+            elif self.runtime_mode == "python":
+                command = [self.python_path, self.worker_path] + worker_args
+            else:
+                return "[Error] Unsupported runtime mode: {}".format(self.runtime_mode)
             self.process = subprocess.Popen(
-                [
-                    self.python_path,
-                    self.worker_path,
-                    "--ocr-version",
-                    version,
-                    "--textline-orientation",
-                    orientation,
-                    "--cpu-threads",
-                    cpu_threads,
-                    "--mkldnn",
-                    mkldnn,
-                ],
+                command,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=None,
@@ -80,6 +97,12 @@ class Api:
                         pass
 
     def runPath(self, img_path):
+        if self.runtime_mode == "docker":
+            try:
+                with open(img_path, "rb") as image_file:
+                    return self.runBytes(image_file.read())
+            except Exception as exc:
+                return {"code": 102, "data": "[Error] Unable to read image: {}".format(exc)}
         return self._request({"image_path": os.path.abspath(img_path)})
 
     def runBytes(self, image_bytes):
