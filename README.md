@@ -299,6 +299,10 @@ Umi-OCR
 - [Windows](https://github.com/hiroi-sora/Umi-OCR_runtime_windows)
 - [Linux](https://github.com/hiroi-sora/Umi-OCR_runtime_linux)
 
+### PaddleOCR 3.x 新版插件（实验性）
+
+本分支提供一个在独立 Python 环境中运行的 PaddleOCR 3.x 插件，默认使用 PP-OCRv6，也可选择 PP-OCRv5。它与现有 PaddleOCR-json 插件并存。安装说明见 [`dev-tools/paddleocr3_plugin/README.md`](dev-tools/paddleocr3_plugin/README.md)，对比测试集见 [`dev-tools/ocr-benchmark/README.md`](dev-tools/ocr-benchmark/README.md)。
+
 --- 
 
 ## 软件本地化翻译：

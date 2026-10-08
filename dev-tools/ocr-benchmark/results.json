@@ -1,0 +1,234 @@
+{
+  "dataset": "Umi-OCR synthetic smoke corpus",
+  "sample_count": 12,
+  "normalization": "Unicode NFKC, remove whitespace, casefold; punctuation retained",
+  "system": "Linux-7.0.14-linuxkit-x86_64-with-glibc2.41",
+  "architecture": "x86_64",
+  "python": "3.11.17",
+  "cpu_threads": 4,
+  "mkldnn": false,
+  "ocr_version": "PP-OCRv6",
+  "legacy_command": [
+    "/tmp/PaddleOCR-json_v1.4.1_debian_x64_glibc2.31/run.sh",
+    "-config_path=/tmp/PaddleOCR-json_v1.4.1_debian_x64_glibc2.31/models/config_chinese.txt"
+  ],
+  "new_runtime": {
+    "paddleocr": "3.7.0",
+    "paddlepaddle": "3.3.1"
+  },
+  "run_note": "x86_64 Linux container under QEMU emulation on Apple ARM host; latency figures are not release-comparable.",
+  "engines": [
+    {
+      "engine": "PaddleOCR-json",
+      "startup_seconds": 1.009637584007578,
+      "exact_accuracy": 0.8333333333333334,
+      "cer": 0.020689655172413793,
+      "latency_median_ms": 88.007854494208,
+      "latency_p95_ms": 102.97671219668699,
+      "samples": [
+        {
+          "id": "zh_simple",
+          "ground_truth": "离线文字识别测试",
+          "recognized": "离线文字识别测试",
+          "cer": 0.0,
+          "latency_ms": 50.550749991089106,
+          "exact": true
+        },
+        {
+          "id": "en_clean",
+          "ground_truth": "Offline OCR benchmark 2026",
+          "recognized": "Offline OCR benchmark 2026",
+          "cer": 0.0,
+          "latency_ms": 111.17579099663999,
+          "exact": true
+        },
+        {
+          "id": "mixed_id",
+          "ground_truth": "订单号 A1024 金额 ￥58.90",
+          "recognized": "订单号A1024金额￥58.90",
+          "cer": 0.0,
+          "latency_ms": 92.50408298976254,
+          "exact": true
+        },
+        {
+          "id": "punctuation",
+          "ground_truth": "括号（测试）、标点：句号。",
+          "recognized": "括号（测试）丶标点：句号。",
+          "cer": 0.07692307692307693,
+          "latency_ms": 88.24920799816027,
+          "exact": false
+        },
+        {
+          "id": "confusables",
+          "ground_truth": "0123456789 O0 I1 l1",
+          "recognized": "0123456789 O0 11 11",
+          "cer": 0.125,
+          "latency_ms": 87.98062500136439,
+          "exact": false
+        },
+        {
+          "id": "traditional",
+          "ground_truth": "繁體中文 OCR 測試",
+          "recognized": "繁體中文 OCR 測試",
+          "cer": 0.0,
+          "latency_ms": 88.13879200897645,
+          "exact": true
+        },
+        {
+          "id": "small_text",
+          "ground_truth": "小字测试 123456",
+          "recognized": "小字测试123456",
+          "cer": 0.0,
+          "latency_ms": 84.137166995788,
+          "exact": true
+        },
+        {
+          "id": "two_lines",
+          "ground_truth": "第一页文字\n第二行 OCR",
+          "recognized": "第一页文字　\n第二行OCR",
+          "cer": 0.0,
+          "latency_ms": 96.26837499672547,
+          "exact": true
+        },
+        {
+          "id": "low_contrast",
+          "ground_truth": "低对比度文字识别",
+          "recognized": "低对比度文字识别",
+          "cer": 0.0,
+          "latency_ms": 83.81962499697693,
+          "exact": true
+        },
+        {
+          "id": "rotated",
+          "ground_truth": "轻微倾斜 OCR 文字",
+          "recognized": "轻微倾斜OCR文字",
+          "cer": 0.0,
+          "latency_ms": 84.39512501354329,
+          "exact": true
+        },
+        {
+          "id": "blurred",
+          "ground_truth": "轻度模糊文本 2026",
+          "recognized": "轻度模糊文本 2026",
+          "cer": 0.0,
+          "latency_ms": 86.1013750109123,
+          "exact": true
+        },
+        {
+          "id": "dark_bg",
+          "ground_truth": "深色背景识别 ABC123",
+          "recognized": "深色背景识别ABC123",
+          "cer": 0.0,
+          "latency_ms": 88.03508398705162,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "engine": "PaddleOCR 3.x PP-OCRv6",
+      "startup_seconds": 3.0897943759919144,
+      "exact_accuracy": 0.75,
+      "cer": 0.027586206896551724,
+      "latency_median_ms": 1172.1932709988323,
+      "latency_p95_ms": 1339.9496967918822,
+      "samples": [
+        {
+          "id": "zh_simple",
+          "ground_truth": "离线文字识别测试",
+          "recognized": "离线文字识别测试",
+          "cer": 0.0,
+          "latency_ms": 1148.435041992343,
+          "exact": true
+        },
+        {
+          "id": "en_clean",
+          "ground_truth": "Offline OCR benchmark 2026",
+          "recognized": "Offline OCR benchmark 2026",
+          "cer": 0.0,
+          "latency_ms": 1296.5590839885408,
+          "exact": true
+        },
+        {
+          "id": "mixed_id",
+          "ground_truth": "订单号 A1024 金额 ￥58.90",
+          "recognized": "订单号 A1024 金额 ￥58.90",
+          "cer": 0.0,
+          "latency_ms": 1183.438500011107,
+          "exact": true
+        },
+        {
+          "id": "punctuation",
+          "ground_truth": "括号（测试）、标点：句号。",
+          "recognized": "括号（测试）标点：句号。",
+          "cer": 0.07692307692307693,
+          "latency_ms": 1219.1943750076462,
+          "exact": false
+        },
+        {
+          "id": "confusables",
+          "ground_truth": "0123456789 O0 I1 l1",
+          "recognized": "0123456789 O0 11 11",
+          "cer": 0.125,
+          "latency_ms": 1176.4591250102967,
+          "exact": false
+        },
+        {
+          "id": "traditional",
+          "ground_truth": "繁體中文 OCR 測試",
+          "recognized": "繁体中文 OCR 測試",
+          "cer": 0.1111111111111111,
+          "latency_ms": 1114.9202500091633,
+          "exact": false
+        },
+        {
+          "id": "small_text",
+          "ground_truth": "小字测试 123456",
+          "recognized": "小字测试 123456",
+          "cer": 0.0,
+          "latency_ms": 1167.927416987368,
+          "exact": true
+        },
+        {
+          "id": "two_lines",
+          "ground_truth": "第一页文字\n第二行 OCR",
+          "recognized": "第一页文字\n第二行 OCR",
+          "cer": 0.0,
+          "latency_ms": 1392.982667995966,
+          "exact": true
+        },
+        {
+          "id": "low_contrast",
+          "ground_truth": "低对比度文字识别",
+          "recognized": "低对比度文字识别",
+          "cer": 0.0,
+          "latency_ms": 1282.7874999929918,
+          "exact": true
+        },
+        {
+          "id": "rotated",
+          "ground_truth": "轻微倾斜 OCR 文字",
+          "recognized": "轻微倾斜 OCR 文字",
+          "cer": 0.0,
+          "latency_ms": 1116.308250988368,
+          "exact": true
+        },
+        {
+          "id": "blurred",
+          "ground_truth": "轻度模糊文本 2026",
+          "recognized": "轻度模糊文本 2026",
+          "cer": 0.0,
+          "latency_ms": 1153.0769590026466,
+          "exact": true
+        },
+        {
+          "id": "dark_bg",
+          "ground_truth": "深色背景识别 ABC123",
+          "recognized": "深色背景识别 ABC123",
+          "cer": 0.0,
+          "latency_ms": 1165.9340000041993,
+          "exact": true
+        }
+      ]
+    }
+  ]
+}

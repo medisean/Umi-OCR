@@ -1,0 +1,112 @@
+[
+  {
+    "id": "zh_simple",
+    "image": "zh_simple.png",
+    "ground_truth": "离线文字识别测试",
+    "tags": [
+      "zh-CN",
+      "clean"
+    ]
+  },
+  {
+    "id": "en_clean",
+    "image": "en_clean.png",
+    "ground_truth": "Offline OCR benchmark 2026",
+    "tags": [
+      "en",
+      "clean"
+    ]
+  },
+  {
+    "id": "mixed_id",
+    "image": "mixed_id.png",
+    "ground_truth": "订单号 A1024 金额 ￥58.90",
+    "tags": [
+      "zh-CN",
+      "latin",
+      "digits"
+    ]
+  },
+  {
+    "id": "punctuation",
+    "image": "punctuation.png",
+    "ground_truth": "括号（测试）、标点：句号。",
+    "tags": [
+      "zh-CN",
+      "punctuation"
+    ]
+  },
+  {
+    "id": "confusables",
+    "image": "confusables.png",
+    "ground_truth": "0123456789 O0 I1 l1",
+    "tags": [
+      "en",
+      "digits",
+      "confusables"
+    ]
+  },
+  {
+    "id": "traditional",
+    "image": "traditional.png",
+    "ground_truth": "繁體中文 OCR 測試",
+    "tags": [
+      "zh-TW",
+      "clean"
+    ]
+  },
+  {
+    "id": "small_text",
+    "image": "small_text.png",
+    "ground_truth": "小字测试 123456",
+    "tags": [
+      "zh-CN",
+      "small"
+    ]
+  },
+  {
+    "id": "two_lines",
+    "image": "two_lines.png",
+    "ground_truth": "第一页文字\n第二行 OCR",
+    "tags": [
+      "zh-CN",
+      "multiline"
+    ]
+  },
+  {
+    "id": "low_contrast",
+    "image": "low_contrast.png",
+    "ground_truth": "低对比度文字识别",
+    "tags": [
+      "zh-CN",
+      "low-contrast"
+    ]
+  },
+  {
+    "id": "rotated",
+    "image": "rotated.png",
+    "ground_truth": "轻微倾斜 OCR 文字",
+    "tags": [
+      "zh-CN",
+      "rotation"
+    ]
+  },
+  {
+    "id": "blurred",
+    "image": "blurred.png",
+    "ground_truth": "轻度模糊文本 2026",
+    "tags": [
+      "zh-CN",
+      "blur"
+    ]
+  },
+  {
+    "id": "dark_bg",
+    "image": "dark_bg.png",
+    "ground_truth": "深色背景识别 ABC123",
+    "tags": [
+      "zh-CN",
+      "dark-background"
+    ]
+  }
+]
