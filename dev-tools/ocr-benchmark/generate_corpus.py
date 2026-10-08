@@ -41,7 +41,6 @@ def find_font():
 
 
 def main():
-    random.seed(20261008)
     OUT.mkdir(parents=True, exist_ok=True)
     font_path = find_font()
     manifest = []

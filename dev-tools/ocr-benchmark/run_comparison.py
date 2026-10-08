@@ -1,6 +1,7 @@
 """Compare the existing PaddleOCR-json pipe API with the PaddleOCR 3.x worker."""
 
 import argparse
+import base64
 import json
 import platform
 import re
@@ -24,13 +25,24 @@ def read_json_line(stream):
 
 
 class NewEngine:
-    def __init__(self, python, version, orientation, cpu_threads, mkldnn):
+    def __init__(self, python, version, orientation, cpu_threads, mkldnn,
+                 runtime_mode="python", docker_path="docker", docker_image="umi-ocr-paddle:3.7.0",
+                 docker_volume="umi-ocr-paddle-cache"):
         started = time.perf_counter()
+        worker_args = ["--ocr-version", version,
+                       "--textline-orientation", "1" if orientation else "0",
+                       "--cpu-threads", str(cpu_threads),
+                       "--mkldnn", "1" if mkldnn else "0"]
+        self.docker_mode = runtime_mode == "docker"
+        if runtime_mode == "docker":
+            command = [docker_path, "run", "--rm", "-i", "--volume",
+                       "{}:/opt/paddlex".format(docker_volume), docker_image] + worker_args
+        elif runtime_mode == "python":
+            command = [python, str(PLUGIN_WORKER)] + worker_args
+        else:
+            raise ValueError("Unsupported runtime mode: {}".format(runtime_mode))
         self.process = subprocess.Popen(
-            [python, str(PLUGIN_WORKER), "--ocr-version", version,
-             "--textline-orientation", "1" if orientation else "0",
-             "--cpu-threads", str(cpu_threads),
-             "--mkldnn", "1" if mkldnn else "0"],
+            command,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=None,
             text=True, encoding="utf-8", bufsize=1,
         )
@@ -41,7 +53,12 @@ class NewEngine:
         self.startup_seconds = time.perf_counter() - started
 
     def recognize(self, image_path):
-        self.process.stdin.write(json.dumps({"image_path": str(image_path)}) + "\n")
+        if self.docker_mode:
+            with open(image_path, "rb") as image_file:
+                payload = {"image_base64": base64.b64encode(image_file.read()).decode("ascii")}
+        else:
+            payload = {"image_path": str(image_path)}
+        self.process.stdin.write(json.dumps(payload) + "\n")
         self.process.stdin.flush()
         return read_json_line(self.process.stdout)
 
@@ -125,17 +142,17 @@ def percentile(values, percent):
     return ordered[low] + (ordered[high] - ordered[low]) * (position - low)
 
 
-def compare(engine_name, engine, samples, warmups):
+def compare(engine_name, engine, samples, warmups, corpus_dir):
     if samples and warmups:
         for sample in samples[:warmups]:
-            engine.recognize(ROOT / "corpus" / sample["image"])
+            engine.recognize(corpus_dir / sample["image"])
     rows = []
     distances = 0
     characters = 0
     latencies = []
     for sample in samples:
         started = time.perf_counter()
-        response = engine.recognize(ROOT / "corpus" / sample["image"])
+        response = engine.recognize(corpus_dir / sample["image"])
         elapsed_ms = (time.perf_counter() - started) * 1000
         expected = sample["ground_truth"]
         actual = response_text(response)
@@ -165,18 +182,43 @@ def main():
     parser.add_argument("--legacy-executable", help="PaddleOCR-json executable in pipe mode")
     parser.add_argument("--legacy-arg", action="append", default=[], help="Repeatable PaddleOCR-json startup argument")
     parser.add_argument("--new-python", default=sys.executable, help="Python executable with paddleocr 3.7.0 and its inference runtime")
+    parser.add_argument("--new-runtime", choices=("python", "docker"), default="python")
+    parser.add_argument("--docker-path", default="docker")
+    parser.add_argument("--docker-image", default="umi-ocr-paddle:3.7.0")
+    parser.add_argument("--docker-volume", default="umi-ocr-paddle-cache")
     parser.add_argument("--ocr-version", choices=("PP-OCRv5", "PP-OCRv6"), default="PP-OCRv6")
     parser.add_argument("--textline-orientation", action="store_true")
     parser.add_argument("--cpu-threads", type=int, default=4)
     parser.add_argument("--mkldnn", action="store_true", help="Enable oneDNN for PaddleOCR 3.x CPU inference")
     parser.add_argument("--warmups", type=int, default=1)
+    parser.add_argument(
+        "--corpus-dir",
+        type=Path,
+        default=ROOT / "corpus",
+        help="Directory containing manifest.json and the referenced image files",
+    )
+    parser.add_argument("--dataset-name", help="Optional name recorded in the report")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--run-note", default="", help="Record hardware/emulation or other comparison caveats")
     args = parser.parse_args()
 
-    samples = json.loads((ROOT / "corpus" / "manifest.json").read_text(encoding="utf-8"))
+    corpus_dir = args.corpus_dir.expanduser().resolve()
+    manifest_path = corpus_dir / "manifest.json"
+    samples = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(samples, list) or not samples:
+        parser.error("manifest.json must contain a non-empty JSON array of samples")
+    sample_ids = set()
+    for sample in samples:
+        if not isinstance(sample, dict) or not all(key in sample for key in ("id", "image", "ground_truth")):
+            parser.error("each manifest entry must contain id, image, and ground_truth")
+        if sample["id"] in sample_ids:
+            parser.error("duplicate sample id: {}".format(sample["id"]))
+        sample_ids.add(sample["id"])
+        image_path = (corpus_dir / sample["image"]).resolve()
+        if corpus_dir not in image_path.parents or not image_path.is_file():
+            parser.error("missing image or image path escapes corpus directory: {}".format(sample["image"]))
     report = {
-        "dataset": "Umi-OCR synthetic smoke corpus",
+        "dataset": args.dataset_name or corpus_dir.name,
         "sample_count": len(samples),
         "normalization": "Unicode NFKC, remove whitespace, casefold; punctuation retained",
         "system": platform.platform(),
@@ -187,6 +229,7 @@ def main():
         "ocr_version": args.ocr_version,
         "legacy_command": ([args.legacy_executable] + args.legacy_arg) if args.legacy_executable else None,
         "new_runtime": None,
+        "new_runtime_mode": args.new_runtime,
         "run_note": args.run_note,
         "engines": [],
     }
@@ -198,9 +241,11 @@ def main():
                 legacy_args.append("-cpu_threads={}".format(args.cpu_threads))
             engines.append(("PaddleOCR-json", LegacyEngine(args.legacy_executable, legacy_args)))
         engines.append(("PaddleOCR 3.x " + args.ocr_version,
-                        NewEngine(args.new_python, args.ocr_version, args.textline_orientation, args.cpu_threads, args.mkldnn)))
+                        NewEngine(args.new_python, args.ocr_version, args.textline_orientation,
+                                  args.cpu_threads, args.mkldnn, args.new_runtime, args.docker_path,
+                                  args.docker_image, args.docker_volume)))
         for name, engine in engines:
-            report["engines"].append(compare(name, engine, samples, args.warmups))
+            report["engines"].append(compare(name, engine, samples, args.warmups, corpus_dir))
             if name.startswith("PaddleOCR 3.x"):
                 report["new_runtime"] = engine.runtime
     finally:

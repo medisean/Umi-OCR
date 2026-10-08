@@ -6,20 +6,51 @@ low contrast, mild rotation, blur, and dark backgrounds. The labels are in
 `corpus/manifest.json`. It is intended as a deterministic smoke/regression set,
 not a substitute for a representative real-world evaluation set.
 
+The runner also accepts a separate, user-supplied corpus. Put images and a
+`manifest.json` in one directory; each entry needs a unique `id`, a relative
+`image` filename, and `ground_truth` text. Keep sensitive or unlicensed images
+outside the repository. For example:
+
+```json
+[
+  {"id": "receipt-001", "image": "receipt-001.png", "ground_truth": "总计 58.90"}
+]
+```
+
+Pass that directory with `--corpus-dir /path/to/your-corpus`. The runner checks
+that paths stay inside the corpus directory and that every image exists.
+
 ## Run a comparison
 
-Use an isolated environment containing the selected PaddleOCR version and its
-inference runtime. The legacy engine is the existing PaddleOCR-json executable
-from its official release. Both engines run as persistent subprocesses so
-model initialization is excluded from per-image latency.
+The legacy engine is the existing PaddleOCR-json executable from its official
+release. The new engine can run in an isolated Python environment or in the
+Docker image described in the PaddleOCR plugin README. Both engines run as
+persistent subprocesses so model initialization is excluded from per-image
+latency.
 
 ```sh
 python3 dev-tools/ocr-benchmark/run_comparison.py \
   --legacy-executable /path/to/PaddleOCR-json \
   --new-python /path/to/paddleocr-3.7/bin/python \
   --ocr-version PP-OCRv6 \
+  --corpus-dir dev-tools/ocr-benchmark/corpus \
   --output dev-tools/ocr-benchmark/results.json
 ```
+
+To run PaddleOCR 3.x from Docker instead, use:
+
+```sh
+python3 dev-tools/ocr-benchmark/run_comparison.py \
+  --legacy-executable /path/to/PaddleOCR-json \
+  --new-runtime docker \
+  --docker-image umi-ocr-paddle:3.7.0 \
+  --docker-volume umi-ocr-paddle-cache \
+  --corpus-dir /path/to/your-corpus \
+  --run-note "Docker Desktop emulation; latency is not comparable"
+```
+
+The runner sends image bytes through stdin in Docker mode. This works with
+external corpora without mounting their directory into the container.
 
 On Windows, pass the path to `PaddleOCR-json.exe` and the isolated environment's
 `python.exe`. Use `--legacy-arg` for engine options such as a specific model
@@ -38,5 +69,7 @@ results across machines.
 For a fair comparison, run on native hardware with the same CPU thread count.
 If you run the x86_64 executable through emulation, treat the result as
 functional/accuracy-only and do not use its latency as a release benchmark.
+Docker Desktop emulation has the same latency limitation; record it with
+`--run-note`.
 
 See [`RESULTS.md`](RESULTS.md) for the first recorded run and its limitations.
