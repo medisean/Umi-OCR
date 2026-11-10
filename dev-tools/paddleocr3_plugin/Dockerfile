@@ -15,6 +15,9 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
     && python -m pip install --no-cache-dir -r /app/requirements.txt
 
 COPY dev-tools/paddleocr3_plugin/worker.py /app/worker.py
+COPY dev-tools/paddleocr3_plugin/models/PP-OCRv6_medium_det/ /opt/paddlex/official_models/PP-OCRv6_medium_det/
+COPY dev-tools/paddleocr3_plugin/models/PP-OCRv6_medium_rec/ /opt/paddlex/official_models/PP-OCRv6_medium_rec/
+COPY dev-tools/paddleocr3_plugin/models/LICENSE /app/models/LICENSE
 VOLUME ["/opt/paddlex"]
 ENTRYPOINT ["python", "/app/worker.py"]
 CMD ["--ocr-version", "PP-OCRv6", "--cpu-threads", "4"]

@@ -22,3 +22,20 @@ valid performance comparison: the x86_64 Linux test ran under QEMU emulation on
 an Apple ARM host, and the new engine ran with oneDNN disabled. Use native
 Windows/Linux hardware and identical model/input settings for a release
 performance decision.
+
+## Bundled PP-OCRv6 Docker image smoke test
+
+Run date: 2026-11-10. The `umi-ocr-paddle:3.7.0` amd64 image reported
+PaddleOCR 3.7.0, PaddleX 3.7.2, and PaddlePaddle 3.3.1. It initialized the
+bundled PP-OCRv6 medium models with Docker networking disabled and recognized
+all 12 checked-in synthetic samples. Exact accuracy was 9/12 (75.0%) with
+2.76% character error rate; median and p95 latency were 1,160 ms and 1,309 ms.
+This ran on an arm64 Docker host under amd64 emulation, so latency is only a
+smoke-test observation. The model weights are Apache-2.0 licensed and are
+included in the repository and image.
+
+The image was assembled from the already packaged runtime image and the
+bundled model files because a clean runtime rebuild stalled while pip was
+downloading the 195 MB PaddlePaddle wheel. The resulting image was tested
+offline; a clean build from the updated Dockerfile remains to be verified on a
+host with a faster PyPI connection.

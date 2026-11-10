@@ -16,17 +16,24 @@ plugins. PP-OCRv6 is the default; PP-OCRv5 remains selectable for comparison.
 5. In Umi-OCR's plugin settings, set **Python executable** to the environment's
    Python executable. Select PP-OCRv6 or PP-OCRv5 in the local OCR settings.
 
-The first engine start downloads the selected official model unless it is
-already cached. For a fully offline deployment, warm the model cache while
-online, then copy that cache with the environment. Runtime/model licensing and
-redistribution terms must be reviewed before bundling them into an installer.
+The local Python runtime downloads its selected model on first use. The Docker
+image described below bundles the official PP-OCRv6 medium detection and
+recognition models, so Docker inference can start offline after the image is
+loaded. The model files and PaddleOCR software are Apache-2.0 licensed; see
+`models/LICENSE` and each model's `README.md` for attribution.
 
 ## Build a Docker image package
 
 From the repository root, run `sh dev-tools/paddleocr3_plugin/build-image.sh`.
-This builds the CPU image `umi-ocr-paddle:3.7.0` for `linux/amd64` and exports
-`umi-ocr-paddle_3.7.0.tar`. Load it on another Docker host with
+This builds the CPU image `umi-ocr-paddle:3.7.0` for `linux/amd64` (x86_64)
+and exports `umi-ocr-paddle_3.7.0.tar`. Load it on another Docker host with
 `docker load -i umi-ocr-paddle_3.7.0.tar`.
+
+The bundled weights are PP-OCRv6 medium. Each image includes the official
+detection and recognition model files, so first startup does not download
+weights. PaddlePaddle 3.3.1 CPU wheels are currently available for Linux
+x86_64; on ARM hosts, Docker can run this amd64 image through emulation, with
+lower performance.
 
 The image runs the same JSON-lines worker protocol used by the plugin. For a
 standalone smoke run, keep stdin open and mount a persistent model cache:
@@ -36,10 +43,10 @@ docker run --rm -i -v umi-paddle-cache:/opt/paddlex \
   umi-ocr-paddle:3.7.0 --ocr-version PP-OCRv6 --cpu-threads 4
 ```
 
-The first run downloads model files into the cache volume. This image packages
-the OCR worker and CPU runtime; it does not contain the Umi-OCR desktop app or
-GPU runtime. GPU images need a PaddlePaddle wheel and base/runtime matching the
-target CUDA and driver versions. The plugin currently launches a local Python
+This image packages the OCR worker, CPU runtime, and PP-OCRv6 medium models;
+it does not contain the Umi-OCR desktop app or GPU runtime. GPU images need a
+PaddlePaddle wheel and base/runtime matching the target CUDA and driver
+versions. The plugin currently launches a local Python
 worker by default. To use the image from Umi-OCR, select **Docker image** as
 the plugin Runtime, then set the Docker executable, image tag, and named model
 cache volume in the plugin's global settings. The image and named volume must
@@ -55,8 +62,8 @@ bytes over stdin, so image files do not need to be mounted into the container.
 - PaddleOCR 3.x results are normalized to the existing Umi-OCR plugin schema;
   coordinates are kept as four-point polygons.
 - CPU/GPU runtime availability differs by platform. Choose the matching
-  PaddlePaddle build using the official guide; this repository does not ship a
-  model or platform-specific runtime binary.
+  PaddlePaddle build using the official guide. The bundled Docker image is a
+  CPU-only x86_64 build; the separate Python plugin does not bundle a runtime.
 - The smoke comparison used `enable_mkldnn=False`. In the x86 emulated test
   environment, enabling oneDNN raised a Paddle PIR runtime error. The plugin
   keeps it off by default and exposes a setting to enable it on supported
